@@ -37,11 +37,11 @@ jobs:
 
       - name: Ejecutar Políticas (c7n-org)
         run: |
-          c7n-org run -c subscriptions.yml -s custodian-logs -u custodian.yml --debug --cache-period 0
+          c7n-org run -c subscriptions.yml -s output-logs -u custodian.yml --debug --cache-period 0
 
       - name: Artifact
         if: always() 
         uses: actions/upload-artifact@v4
         with:
           name: custodian-logs
-          path: custodian-logs/
+          path: output-logs/
