@@ -1,0 +1,44 @@
+name: Cloud Custodian Policy Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-custodian:
+    runs-on: ubuntu-latest
+    
+    env:
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11' 
+
+      - name: Install Cloud Custodian
+        run: |
+          python -m pip install --upgrade pip
+          pip install c7n c7n-azure c7n-org
+          c7n --version
+          c7n-org --version
+  
+      - name: Generate subscription.yml
+        run: python azuresubs.py -f subscriptions.yml
+
+      - name: Ejecutar Políticas (c7n-org)
+        run: |
+          c7n-org run -c subscriptions.yml -s custodian-logs -u custodian.yml --debug --cache-period 0
+
+      - name: Artifact
+        if: always() 
+        uses: actions/upload-artifact@v4
+        with:
+          name: custodian-logs
+          path: custodian-logs/
