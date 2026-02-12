@@ -2,9 +2,10 @@ name: Cloud Custodian Policy Run
 
 on:
   workflow_dispatch:
-  workflow_run:
-    branches: 
+  push:
+    branches:
       - main
+
 jobs:
   run-custodian:
     runs-on: ubuntu-latest
