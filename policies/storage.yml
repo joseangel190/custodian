@@ -1,0 +1,21 @@
+policies:
+  - name: storage
+    description: list-storage
+    resource: azure.storage
+    filters:
+      - type: value
+        key: name
+        value: issue 
+        op: contains
+      - type: value
+        key: "tags.Environment"
+        value: ["Desa", "desa"]
+        op: in
+      - type: value
+        key: name
+        op: not-in
+        value_from:
+          url: st-exclude.csv
+          format: csv
+#    actions:
+#      - type: delete 

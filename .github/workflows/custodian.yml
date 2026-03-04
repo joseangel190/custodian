@@ -31,17 +31,46 @@ jobs:
           pip install c7n c7n-azure c7n-org
           custodian version
           c7n-org --help
-  
-      - name: Generate subscription.yml
-        run: python azuresubs.py -f subscriptions.yml
 
-      - name: Ejecutar Políticas (c7n-org)
+      - name: Generate Subscription Inventory
         run: |
-          c7n-org run -c subscriptions.yml -s custodian-logs -u custodian.yml --debug --cache-period 0
+          python azuresubs.py -f subscriptions.yml
+          cat subscriptions.yml
 
-      - name: Artifact
-        if: always() 
+      - name: Execute Policies (Storage Account and Front Door)
+        run: |
+
+          echo "[INFO] Iniciando ejecucion de politica: Azure Front Door"
+          c7n-org run -c subscriptions.yml -s output-logs -u policies/front_door.yml --debug --cache-period 0 
+
+          echo "[INFO] Iniciando ejecucion de politica: Azure Storage Account"
+          c7n-org run -c subscriptions.yml -s output-logs -u policies/storage.yml --debug --cache-period 0 
+
+      - name: Generate Normalized Reports (Console and CSV)
+        run: |
+          echo "[INFO] Generando reporte: Azure Storage Account"
+          c7n-org report -c subscriptions.yml -s output-logs -u policies/storage.yml \
+            --field "Environment=tags.Environment" \
+            | sed 's/"desa"/"Desarrollo"/g; s/"Desa"/"Desarrollo"/g; s/"DESA"/"Desarrollo"/g' \
+            | sed 's/"cert"/"Certificacion"/g; s/"Cert"/"Certificacion"/g; s/"CERT"/"Certificacion"/g' \
+            | tee reporte_storage.csv \
+            | column -t -s ','
+            
+          echo ""
+          echo "[INFO] Generando reporte: Azure Front Door"
+          c7n-org report -c subscriptions.yml -s output-logs -u policies/front_door.yml \
+            --field "Environment=tags.Environment" \
+            | sed 's/"desa"/"Desarrollo"/g; s/"Desa"/"Desarrollo"/g; s/"DESA"/"Desarrollo"/g' \
+            | sed 's/"cert"/"Certificacion"/g; s/"Cert"/"Certificacion"/g; s/"CERT"/"Certificacion"/g' \
+            | tee reporte_front_door.csv \
+            | column -t -s ','
+
+      - name: Upload Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: custodian-logs
-          path: custodian-logs
+          name: evidencias-custodian
+          path: |
+            output-logs/
+            reporte_storage.csv
+            reporte_front_door.csv

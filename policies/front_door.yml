@@ -1,0 +1,15 @@
+policies:
+  - name: front-door
+    description: list-front-door
+    resource: azure.cdnprofile
+    filters:
+      - type: value
+        key: name
+        value: issue 
+        op: contains
+      - type: value
+        key: "tags.Environment"
+        value: ["Desa", "desa"]
+        op: in
+#    actions:
+#      - type: delete 
