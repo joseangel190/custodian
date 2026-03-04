@@ -15,7 +15,7 @@ policies:
         key: name
         op: not-in
         value_from:
-          url: st-exclude.csv          
+          url: file:./st-exclude.csv         
           format: txt
 #    actions:
 #      - type: delete 
