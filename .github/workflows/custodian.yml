@@ -74,3 +74,4 @@ jobs:
             output-logs/
             reporte_storage.csv
             reporte_front_door.csv
+            st-exclude.csv
